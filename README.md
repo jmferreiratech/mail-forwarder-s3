@@ -1,11 +1,11 @@
-mail-forwarder-sns
+mail-forwarder-s3
 --
 
 You can use Amazon Simple Email Service (SES) to receive (and send) e-mails on addresses at a custom domain (support@example.com).
 This setup can be both cheaper and more powerful than using a third-party solution.
 
-The idea behind this repo was shamelessly stolen from
-[Ashan Fernando' post Forwarding Emails to Your Inbox Using Amazon SES](https://medium.com/@ashan.fernando/forwarding-emails-to-your-inbox-using-amazon-ses-2d261d60e417)
+This version is an improvement over [the one that uses only SNS (Simple Notification System)](https://github.com/jmarcelof/mail-forwarder-sns)
+and as such has a message size limit of 10 MB, much greater than the former (150 KB).
 
 ### Before you get your hands dirty
 * You need to [verify your domain with Amazon SES](https://docs.aws.amazon.com/ses/latest/DeveloperGuide/verify-domain-procedure.html)

@@ -17,15 +17,15 @@ async function handleMessage(Message) {
     const msg = JSON.parse(Message);
     const {
         notificationType,
-        receipt: {recipients},
+        receipt: {recipients, action},
         mail: {source, commonHeaders: {subject}},
-        content,
     } = msg;
 
     if (notificationType !== "Received") {
         return console.warn(`Unknown notification type: ${notificationType}`);
     }
 
+    const content = await mailContent(action);
     const headers = mailHeaders(recipients, source, subject, content);
     const body = mailBody(content);
     const Data = `${headers}\r\n\r\n${body}`;
@@ -34,6 +34,11 @@ async function handleMessage(Message) {
         .sendRawEmail({RawMessage: { Data }})
         .promise();
     console.log('Forwarded with MessageId: ' + data.MessageId);
+
+    await S3.deleteObject({
+        Bucket: action.bucketName,
+        Key: action.objectKey,
+    }).promise();
 }
 
 function mailHeaders(recipients, source, subject, content) {
@@ -76,3 +81,13 @@ function mailBody(content) {
     const [, ...body] = content.split("\r\n\r\n");
     return body.join("\r\n\r\n");
 }
+
+async function mailContent({bucketName: Bucket, objectKey: Key}) {
+    const {Body} = await S3.getObject({
+        Bucket,
+        Key,
+    }).promise();
+    return Body.toString();
+}
+
+const S3 = new AWS.S3();

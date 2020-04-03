@@ -1,5 +1,5 @@
 service:
-  name: mail-forwarder-sns
+  name: mail-forwarder-s3
 
 plugins:
   - serverless-webpack
@@ -10,13 +10,20 @@ custom:
 provider:
   name: aws
   runtime: nodejs12.x
-  stage: ${opt:stage, 'sns'}
+  stage: ${opt:stage, 's3'}
   iamRoleStatements:
     - Effect: Allow
       Action:
         - ses:SendEmail
         - ses:SendRawEmail
       Resource: "*"
+    - Effect: Allow
+      Action:
+        - s3:GetObject
+        - s3:PutObject
+        - s3:DeleteObject
+      Resource:
+        - Fn::Join: ["",['Fn::GetAtt': [MailBucket, Arn], "/*"]]
   environment:
     to_address: ${file(./config.yml):to}
 
@@ -41,10 +48,30 @@ resources:
       Properties:
         Rule:
           Actions:
-            - SNSAction:
-                Encoding: UTF-8
+            - S3Action:
+                BucketName: !Ref MailBucket
                 TopicArn: !Ref MailSNSTopic
           Enabled: true
           Recipients: ${file(./config.yml):recipients}
           ScanEnabled: true
         RuleSetName: !Ref MailRuleSet
+    MailBucket:
+      Type: AWS::S3::Bucket
+    MailBucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        Bucket: !Ref MailBucket
+        PolicyDocument:
+          Statement:
+            -
+              Action:
+                - "s3:PutObject"
+              Effect: "Allow"
+              Resource:
+                Fn::Join: ["",['Fn::GetAtt': [MailBucket, Arn], "/*"]]
+              Principal:
+                Service: "ses.amazonaws.com"
+              Condition:
+                StringEquals:
+                  aws:Referer:
+                    - !Ref AWS::AccountId

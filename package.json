@@ -1,8 +1,8 @@
 {
-  "name": "mail-forwarder-sns",
+  "name": "mail-forwarder-s3",
   "version": "1.0.0",
   "description": "Mail forwarding setup to Amazon SES with Serverless",
-  "repository": "github:jmarcelof/mail-forwarder-sns",
+  "repository": "github:jmarcelof/mail-forwarder-s3",
   "author": "Marcelo Ferreira <marcelo.ferreira@trincatech.com.br>",
   "license": "MIT",
   "engines": {
